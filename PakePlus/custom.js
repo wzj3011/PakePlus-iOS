@@ -78,11 +78,34 @@ if (typeof console !== 'object' || typeof console.log !== 'function') {
             }catch(err){ alert('清除失败:'+err.message); }
         }
 
-        function closeApp(){
-            if(window.__TAURI__ && window.__TAURI__.window){
-                window.__TAURI__.window.getCurrentWindow().close().catch(function(err){ alert('关闭失败:'+err.message); });
-            }else{ alert('非Tauri环境，无法关闭'); }
-        }
+        function closeApp() {
+    // 方法1：尝试 Tauri 标准 API
+    if (window.__TAURI__ && window.__TAURI__.window) {
+        window.__TAURI__.window.getCurrentWindow().close().catch(function(err) {
+            console.warn('Tauri close failed:', err);
+            fallbackClose();
+        });
+        return;
+    }
+    // 方法2：尝试 Android 原生关闭（如果 PakePlus 注入了 Java 对象）
+    if (window.Android && window.Android.closeApp) {
+        window.Android.closeApp();
+        return;
+    }
+    // 方法3：尝试使用 Cordova 方式
+    if (navigator.app && navigator.app.exitApp) {
+        navigator.app.exitApp();
+        return;
+    }
+    // 方法4：备用方案 – 让用户手动关闭
+    fallbackClose();
+}
+
+function fallbackClose() {
+    alert('请使用系统手势（从屏幕底部上滑并停留）或从最近任务中划掉应用来关闭。');
+    // 也可以尝试强制关闭当前页面
+    window.close(); // 可能无效，但尝试一下
+}
 
         function goTo(path){
             location.href = location.origin + path;
@@ -91,7 +114,9 @@ if (typeof console !== 'object' || typeof console.log !== 'function') {
         function goHome(){
             location.href = location.origin;
         }
-
+        function goOnlineGallery(){
+            location.href = 'https://www.tusheol.com';
+        }
         // 菜单项顺序
         var items = [
             { label: '📋 提交工单', action: function(){ goTo('/user?action=ticket'); } },
@@ -102,6 +127,7 @@ if (typeof console !== 'object' || typeof console.log !== 'function') {
             { label: '📲 APP下载', action: function(){ goTo('/app'); } },
             { label: '💬 网站留言', action: function(){ goTo('/liuyan'); } },
             { label: '🗑️ 清除缓存', action: clearCache },
+            { label: '🖼️ 在线看图', action: goOnlineGallery }, 
             { label: '🏠 返回主页', action: function(){ location.href = 'https://www.yituwan.com'; } },
             { label: '❌ 关闭应用', action: closeApp }
         ];
