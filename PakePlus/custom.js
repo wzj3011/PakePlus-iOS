@@ -24,3 +24,36 @@ window.open = function (url, target, features) {
 }
 
 document.addEventListener('click', hookClick, { capture: true })
+
+
+// ==================== 你添加的隐藏脚本 ====================
+function hideElements() {
+    // 注意：这里使用了更严谨的选择器，来区分class和id
+    const selectors = [
+        '.article-copyright', '#article-copyright',   // 版权信息
+        '.article-shares', '#article-shares',         // 分享组件
+        '.single-related', '#single-related',         // 相关推荐
+        '.desc', '#desc',                             // 描述区域
+        '.home-cathumbs', '#home-cathumbs',           // 首页分类缩略图
+        '.modown-ad', '#modown-ad'                    // 新增：广告位
+    ];
+    
+    selectors.forEach(selector => {
+        document.querySelectorAll(selector).forEach(el => {
+            el.style.display = 'none';
+        });
+    });
+}
+
+// 页面加载后执行一次隐藏
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', hideElements);
+} else {
+    hideElements();
+}
+
+// 监听页面变化，确保通过AJAX新加载的内容也被隐藏
+const observer = new MutationObserver(() => {
+    hideElements();
+});
+observer.observe(document.body, { childList: true, subtree: true });
